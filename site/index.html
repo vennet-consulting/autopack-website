@@ -1,0 +1,1061 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AutoPack | Windows App Packaging Without Manual Drag</title>
+  <meta name="description" content="AutoPack turns raw Windows software into tested, documented, deployment-ready packages for Intune, with optional MSIX and WDAC outputs and a clear path from one-off packaging to a managed factory.">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta name="theme-color" content="#0b2033">
+  <link rel="canonical" href="https://www.autopack.io/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="AutoPack | Windows App Packaging Without Manual Drag">
+  <meta property="og:description" content="Move from manual packaging work to a repeatable delivery line for Intune-ready app packages, testing evidence, documentation, and optional MSIX and WDAC outputs.">
+  <meta property="og:url" content="https://www.autopack.io/">
+  <meta property="og:image" content="https://www.autopack.io/logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AutoPack | Windows App Packaging Without Manual Drag">
+  <meta name="twitter:description" content="Turn raw software into tested, documented, deployment-ready packages without building a packaging factory by hand.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #ebf5ff;
+      --ink-soft: #8ea5bf;
+      --paper: #09131f;
+      --paper-strong: #8edcff;
+      --navy: #07111d;
+      --navy-strong: #040a13;
+      --teal: #61d8ff;
+      --amber: #ff9a62;
+      --lime: #9ef28a;
+      --sand: #152336;
+      --line: rgba(97, 216, 255, 0.16);
+      --shadow: 0 32px 100px rgba(0, 0, 0, 0.42);
+      --max-width: 1180px;
+      --radius: 28px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Manrope", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(97, 216, 255, 0.16), transparent 22%),
+        radial-gradient(circle at 82% 12%, rgba(158, 242, 138, 0.1), transparent 18%),
+        radial-gradient(circle at 50% 100%, rgba(255, 154, 98, 0.08), transparent 24%),
+        linear-gradient(180deg, #050d16 0%, #07111d 24%, #09131f 62%, #060d16 100%);
+      color: var(--ink);
+      line-height: 1.6;
+      min-width: 320px;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(97, 216, 255, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(97, 216, 255, 0.06) 1px, transparent 1px),
+        linear-gradient(135deg, rgba(97, 216, 255, 0.05), transparent 38%);
+      background-size: 52px 52px, 52px 52px, 100% 100%;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.2));
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    .site-shell {
+      overflow: clip;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(18px);
+      background: rgba(4, 10, 19, 0.72);
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 18px 32px rgba(0, 0, 0, 0.18);
+    }
+
+    .hero,
+    .section-inner,
+    .footer-inner {
+      width: min(calc(100% - 2.5rem), var(--max-width));
+      margin: 0 auto;
+    }
+
+    .site-header-inner {
+      width: min(calc(100% - 1.25rem), var(--max-width));
+      margin: 0 auto;
+    }
+
+    .site-header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.45rem 0;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      line-height: 0;
+    }
+
+    .brand-logo {
+      width: clamp(295px, 27vw, 420px);
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.24));
+    }
+
+    .top-nav {
+      display: flex;
+      align-items: center;
+      gap: 1.35rem;
+      color: var(--ink-soft);
+      font-size: 0.95rem;
+    }
+
+    .top-nav a:hover,
+    .top-nav a:focus-visible,
+    .brand:hover,
+    .brand:focus-visible {
+      color: var(--ink);
+    }
+
+    .cta,
+    .ghost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      border-radius: 999px;
+      padding: 0.95rem 1.4rem;
+      font-weight: 700;
+      transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease;
+    }
+
+    .cta {
+      color: #04101b;
+      background: linear-gradient(135deg, var(--teal), #1fa1ff);
+      box-shadow: 0 20px 40px rgba(31, 161, 255, 0.28);
+    }
+
+    .cta:hover,
+    .cta:focus-visible,
+    .ghost:hover,
+    .ghost:focus-visible {
+      transform: translateY(-2px);
+    }
+
+    .ghost {
+      border: 1px solid var(--line);
+      background: rgba(10, 20, 34, 0.72);
+      color: var(--ink);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .cta.mini {
+      padding: 0.75rem 1.1rem;
+      font-size: 0.9rem;
+    }
+
+    .hero {
+      position: relative;
+      padding: 4.8rem 0 3.2rem;
+      min-height: calc(100vh - 78px);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: min(72vh, 720px);
+      background-image:
+        linear-gradient(rgba(97, 216, 255, 0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(97, 216, 255, 0.055) 1px, transparent 1px);
+      background-size: 88px 88px;
+      opacity: 0.8;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.96), transparent 100%);
+      pointer-events: none;
+    }
+
+    .hero-copy {
+      position: relative;
+      z-index: 1;
+      max-width: 1120px;
+    }
+
+    .hero-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 2.2rem;
+    }
+
+    .hero-flag,
+    .hero-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.9rem;
+      padding: 0.9rem 1.15rem;
+      border: 1px solid var(--line);
+      background: rgba(9, 19, 31, 0.58);
+      color: var(--paper-strong);
+      border-radius: 16px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.84rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .hero-flag::before,
+    .hero-status::before {
+      content: "";
+      width: 0.6rem;
+      height: 0.6rem;
+      border-radius: 999px;
+      background: var(--teal);
+      box-shadow: 0 0 0 6px rgba(97, 216, 255, 0.08);
+      flex: none;
+    }
+
+    .hero-status::before {
+      background: var(--amber);
+      box-shadow: 0 0 0 6px rgba(255, 154, 98, 0.08);
+    }
+
+    .eyebrow,
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      margin: 0 0 1rem;
+      color: var(--teal);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.82rem;
+    }
+
+    .eyebrow::before,
+    .section-label::before {
+      content: "";
+      width: 2.25rem;
+      height: 1px;
+      background: currentColor;
+    }
+
+    .hero h1,
+    .section-inner h2,
+    .cta-panel h2 {
+      margin: 0;
+      font-family: "Space Grotesk", sans-serif;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+    }
+
+    .hero h1 {
+      font-size: clamp(3.3rem, 7vw, 6.6rem);
+      max-width: none;
+    }
+
+    .hero-highlight {
+      color: var(--teal);
+    }
+
+    .hero-title-line {
+      display: block;
+      white-space: nowrap;
+    }
+
+    .hero .lead {
+      margin: 1.5rem 0 0;
+      font-size: clamp(1.05rem, 2vw, 1.28rem);
+      color: var(--ink-soft);
+      max-width: 60ch;
+    }
+
+    .hero-stream {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.9rem;
+      margin-top: 2.4rem;
+      max-width: none;
+    }
+
+    .stream-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+      padding: 1rem 1.05rem;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(10, 20, 34, 0.88), rgba(5, 12, 22, 0.8));
+      border: 1px solid var(--line);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .stream-key {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.76rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--teal);
+    }
+
+    .stream-value {
+      color: var(--ink);
+      font-size: 0.94rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      margin-top: 2rem;
+    }
+
+    .hero-proof {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      margin-top: 1.7rem;
+    }
+
+    .hero-proof span {
+      padding: 0.52rem 0.9rem;
+      border-radius: 999px;
+      background: rgba(10, 20, 34, 0.78);
+      border: 1px solid rgba(97, 216, 255, 0.16);
+      color: var(--ink);
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .ticker {
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: rgba(7, 17, 29, 0.88);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .ticker-track {
+      display: inline-block;
+      padding: 1rem 0;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.98rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--paper-strong);
+      animation: ticker 28s linear infinite;
+    }
+
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    section {
+      position: relative;
+    }
+
+    .split-story {
+      padding: 5.5rem 0 2rem;
+    }
+
+    .split-grid {
+      width: min(calc(100% - 2.5rem), var(--max-width));
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      background: var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .story-pane {
+      padding: clamp(2rem, 4vw, 3.2rem);
+    }
+
+    .story-pane.problem {
+      background: rgba(8, 18, 32, 0.9);
+    }
+
+    .story-pane.outcome {
+      background: linear-gradient(160deg, #0a1c31, #0e2f4b 56%, #10394f 100%);
+      color: #f4fbff;
+    }
+
+    .story-pane h2 {
+      font-size: clamp(2.4rem, 4vw, 4rem);
+      margin-bottom: 1.2rem;
+    }
+
+    .story-pane p {
+      margin-top: 0;
+      font-size: 1.02rem;
+    }
+
+    .problem-list,
+    .outcome-lines {
+      margin: 2rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .problem-list li,
+    .outcome-lines div {
+      padding: 1.05rem 0;
+      border-top: 1px solid rgba(97, 216, 255, 0.12);
+    }
+
+    .problem-list strong,
+    .outcome-lines dt {
+      display: block;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 1.04rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .outcome-lines {
+      display: grid;
+      gap: 0;
+    }
+
+    .outcome-lines div {
+      border-color: rgba(97, 216, 255, 0.16);
+    }
+
+    .outcome-lines dt {
+      color: var(--paper-strong);
+    }
+
+    .outcome-lines dd {
+      margin: 0;
+      color: rgba(235, 245, 255, 0.78);
+    }
+
+    .assembly {
+      padding: 5rem 0 2rem;
+    }
+
+    .section-inner h2 {
+      font-size: clamp(2.4rem, 4vw, 4.4rem);
+      max-width: 11ch;
+    }
+
+    .section-intro {
+      display: grid;
+      grid-template-columns: minmax(0, 0.78fr) minmax(0, 1fr);
+      gap: 2rem;
+      align-items: end;
+      margin-bottom: 2rem;
+    }
+
+    .section-intro p {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 1.05rem;
+      max-width: 54ch;
+    }
+
+    .assembly-line {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .assembly-line li {
+      display: grid;
+      grid-template-columns: 96px minmax(0, 1fr) minmax(0, 0.9fr);
+      gap: 1.5rem;
+      align-items: start;
+      padding: 1.7rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .assembly-index {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 1rem;
+      color: rgba(97, 216, 255, 0.56);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding-top: 0.18rem;
+    }
+
+    .assembly-line h3 {
+      margin: 0;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(1.35rem, 2vw, 1.8rem);
+    }
+
+    .assembly-line p {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 1rem;
+      max-width: 54ch;
+    }
+
+    .offers {
+      padding: 5rem 0 2rem;
+    }
+
+    .wdac-brief {
+      padding: 4.5rem 0 2rem;
+    }
+
+    .wdac-shell {
+      width: min(calc(100% - 2.5rem), var(--max-width));
+      margin: 0 auto;
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top right, rgba(97, 216, 255, 0.1), transparent 26%),
+        linear-gradient(180deg, rgba(8, 18, 32, 0.94), rgba(5, 12, 22, 0.96));
+      box-shadow: var(--shadow);
+    }
+
+    .wdac-head {
+      display: grid;
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+      gap: 2rem;
+      padding: clamp(1.8rem, 4vw, 3rem);
+      border-bottom: 1px solid var(--line);
+      align-items: end;
+    }
+
+    .wdac-head h2 {
+      margin: 0;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(2.1rem, 4vw, 4rem);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      max-width: 10.5ch;
+    }
+
+    .wdac-head p {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 1.03rem;
+      max-width: 58ch;
+    }
+
+    .wdac-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      background: var(--line);
+    }
+
+    .wdac-cell {
+      padding: 1.5rem 1.6rem 1.7rem;
+      background: rgba(7, 17, 29, 0.94);
+    }
+
+    .wdac-cell strong {
+      display: inline-block;
+      margin-bottom: 0.7rem;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.8rem;
+      color: var(--paper-strong);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .wdac-cell h3 {
+      margin: 0 0 0.55rem;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 1.25rem;
+    }
+
+    .wdac-cell p {
+      margin: 0;
+      color: var(--ink-soft);
+    }
+
+    .offer-stack {
+      display: grid;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .offer-band {
+      position: relative;
+      display: grid;
+      grid-template-columns: 110px minmax(0, 1fr) minmax(0, 0.95fr);
+      gap: 1.25rem;
+      padding: 1.6rem 1.8rem;
+      border-radius: 24px;
+      overflow: hidden;
+      background: rgba(8, 18, 32, 0.86);
+      border: 1px solid rgba(97, 216, 255, 0.14);
+      box-shadow: 0 18px 32px rgba(0, 0, 0, 0.22);
+    }
+
+    .offer-band::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 10px;
+      background: linear-gradient(180deg, var(--teal), var(--lime));
+    }
+
+    .offer-band strong {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.92rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(97, 216, 255, 0.62);
+      padding-left: 0.4rem;
+    }
+
+    .offer-band h3 {
+      margin: 0;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(1.35rem, 2vw, 1.9rem);
+    }
+
+    .offer-band p {
+      margin: 0;
+      color: var(--ink-soft);
+    }
+
+    .cta-wrap {
+      padding: 5rem 0 6rem;
+    }
+
+    .cta-panel {
+      width: min(calc(100% - 2.5rem), var(--max-width));
+      margin: 0 auto;
+      position: relative;
+      border-radius: 34px;
+      overflow: hidden;
+      padding: clamp(2rem, 4vw, 3.5rem);
+      background:
+        radial-gradient(circle at top right, rgba(97, 216, 255, 0.22), transparent 28%),
+        linear-gradient(145deg, var(--navy-strong), #0b1d33 68%, #0d3340 100%);
+      color: #fcf7ef;
+      box-shadow: var(--shadow);
+    }
+
+    .cta-panel::after {
+      content: "";
+      position: absolute;
+      inset: auto -8% -28% auto;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      border: 1px solid rgba(97, 216, 255, 0.16);
+    }
+
+    .cta-panel h2 {
+      font-size: clamp(2.3rem, 4vw, 4.6rem);
+      max-width: 10ch;
+    }
+
+    .cta-panel p {
+      max-width: 58ch;
+      color: rgba(252, 247, 239, 0.8);
+      font-size: 1.05rem;
+    }
+
+    .cta-actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      margin-top: 1.8rem;
+    }
+
+    .cta-panel .ghost {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(97, 216, 255, 0.16);
+      color: #fff;
+    }
+
+    .footer {
+      border-top: 1px solid var(--line);
+      background: rgba(5, 12, 22, 0.82);
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1.4rem 0 2.5rem;
+      color: var(--ink-soft);
+      font-size: 0.92rem;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: 3px solid rgba(97, 216, 255, 0.36);
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 1080px) {
+      .hero {
+        padding-top: 3.5rem;
+        min-height: auto;
+      }
+
+      .hero h1 {
+        max-width: 11ch;
+      }
+
+      .hero-title-line {
+        white-space: normal;
+      }
+
+      .section-intro,
+      .wdac-head,
+      .offer-band,
+      .assembly-line li,
+      .split-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-stream {
+        grid-template-columns: 1fr;
+      }
+
+      .wdac-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .split-grid {
+        gap: 1px;
+      }
+
+      .assembly-index,
+      .offer-band strong {
+        padding-left: 0;
+      }
+    }
+
+    @media (max-width: 1320px) {
+      .hero h1 {
+        font-size: clamp(2.6rem, 5vw, 4.7rem);
+        max-width: 11.5ch;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .site-header-inner {
+        flex-wrap: wrap;
+      }
+
+      .top-nav {
+        order: 3;
+        width: 100%;
+        justify-content: space-between;
+        gap: 0.8rem;
+        font-size: 0.9rem;
+      }
+
+      .cta.mini {
+        margin-left: auto;
+      }
+
+      .hero {
+        padding: 2.8rem 0 2.2rem;
+      }
+
+      .hero-meta {
+        margin-bottom: 1.5rem;
+      }
+
+      .brand-logo {
+        width: clamp(250px, 70vw, 350px);
+      }
+
+      .hero-flag,
+      .hero-status {
+        white-space: normal;
+        width: 100%;
+      }
+
+      .story-pane,
+      .cta-panel,
+      .offer-band {
+        padding: 1.5rem;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "AutoPack",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Windows",
+      "url": "https://www.autopack.io/",
+      "description": "AutoPack turns Windows application packaging into a repeatable factory, producing Intune-ready packages, documentation, validation evidence, and optional MSIX and WDAC outputs.",
+      "offers": {
+        "@type": "Offer",
+        "availability": "https://schema.org/InStock",
+        "url": "https://www.autopack.io/"
+      },
+      "provider": {
+        "@type": "Organization",
+        "name": "Vennet Consulting"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="site-shell">
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a class="brand" href="#top" aria-label="AutoPack home">
+          <img class="brand-logo" src="./logo.png" alt="AutoPack logo">
+        </a>
+        <nav class="top-nav" aria-label="Primary navigation">
+          <a href="#problem">Why now</a>
+          <a href="#why">What makes it better</a>
+          <a href="#offers">How to buy</a>
+          <a href="#contact">Contact</a>
+        </nav>
+        <a class="cta mini" href="#contact">Request an assessment</a>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <div class="hero-meta">
+            <div class="hero-flag">AutoPack / Packaging control plane</div>
+            <div class="hero-status">Status . request-driven delivery</div>
+          </div>
+          <p class="eyebrow">Endpoint packaging control plane</p>
+          <h1 id="hero-title"><span class="hero-title-line">Windows app packaging.</span><span class="hero-title-line">Delivered as a <span class="hero-highlight">factory pipeline.</span></span></h1>
+          <p class="lead">AutoPack ingests vendor installers, URLs, Winget packages, Chocolatey packages, or existing MSIX files and turns them into tested deployment artifacts, documentation, and operational proof for Intune-led environments.</p>
+          <div class="hero-actions">
+            <a class="cta" href="#contact">Request a packaging assessment</a>
+            <a class="ghost" href="#offers">See delivery options</a>
+          </div>
+          <div class="hero-stream" aria-label="Pipeline summary">
+            <div class="stream-row">
+              <span class="stream-key">Intake</span>
+              <span class="stream-value">Vendor file, URL, Winget ID, Choco ID, MSIX, or prepared metadata folder.</span>
+            </div>
+            <div class="stream-row">
+              <span class="stream-key">Process</span>
+              <span class="stream-value">Request-driven packaging, installer analysis, detection logic, validation, and evidence generation.</span>
+            </div>
+            <div class="stream-row">
+              <span class="stream-key">Outputs</span>
+              <span class="stream-value">.intunewin, docs, metadata, sandbox report, plus optional MSIX and WDAC supplemental policies.</span>
+            </div>
+          </div>
+          <div class="hero-proof" aria-label="Key capabilities">
+            <span>Intune-ready</span>
+            <span>Sandbox-validated</span>
+            <span>Documentation included</span>
+            <span>WDAC deliverables available</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="ticker" aria-hidden="true">
+        <div class="ticker-track">request-driven packaging - installer analysis - detection logic - sandbox validation - intune artifacts - documentation - metadata - optional msix - optional wdac - request-driven packaging - installer analysis - detection logic - sandbox validation - intune artifacts - documentation - metadata - optional msix - optional wdac - </div>
+      </div>
+
+      <section class="split-story" id="problem">
+        <div class="split-grid">
+          <div class="story-pane problem">
+            <p class="section-label">The bottleneck</p>
+            <h2>Packaging work is still too manual.</h2>
+            <p>Most teams still download installers, rediscover silent install arguments, re-test detection rules, and hand-build evidence every time a package is needed. The result is slow turnaround, uneven quality, and operational risk that shows up later.</p>
+            <ul class="problem-list">
+              <li><strong>Backlogs build up fast</strong>New apps and updates wait on scarce packaging capacity.</li>
+              <li><strong>Quality depends on who did the work</strong>Silent switches, detection rules, and uninstall behavior are often rediscovered from scratch.</li>
+              <li><strong>Evidence is hard to trust</strong>Testing, documentation, and audit context are usually scattered across notes and screenshots.</li>
+            </ul>
+          </div>
+
+          <div class="story-pane outcome">
+            <p class="section-label">The shift</p>
+            <h2>AutoPack gives you a packaging pipeline with evidence built in.</h2>
+            <p>Instead of treating each application as a fresh manual exercise, AutoPack runs a structured path from intake to artifact. That means faster delivery, cleaner handovers, and a path from one packaged app to a repeatable customer-ready service model.</p>
+            <dl class="outcome-lines">
+              <div>
+                <dt>Faster turnaround</dt>
+                <dd>Start with a single app or hand over a backlog and reduce the manual middle.</dd>
+              </div>
+              <div>
+                <dt>Higher consistency</dt>
+                <dd>The same request-driven process handles packaging, validation, metadata, and documentation every time.</dd>
+              </div>
+              <div>
+                <dt>Lower delivery risk</dt>
+                <dd>Sandbox evidence, deployment outputs, and optional trust controls are built into the flow rather than bolted on later.</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <section class="assembly" id="why">
+        <div class="section-inner">
+          <div class="section-intro">
+            <div>
+              <p class="section-label">What makes it better</p>
+              <h2>Built to remove packaging risk, not just packaging effort.</h2>
+            </div>
+            <p>AutoPack is different because it does not stop at wrapping an installer. It takes the packaging factory idea seriously: structured intake, deterministic processing, validation, evidence, and clear outputs your team can deploy or govern.</p>
+          </div>
+
+          <ol class="assembly-line">
+            <li>
+              <div class="assembly-index">01</div>
+              <h3>Source-flexible intake</h3>
+              <p>Work from a vendor download, a local installer, a Winget or Chocolatey package, an existing MSIX, or a prepared metadata folder. AutoPack is designed for the real mess customers already have.</p>
+            </li>
+            <li>
+              <div class="assembly-index">02</div>
+              <h3>Policy-driven repeatability</h3>
+              <p>Packaging runs from a simple request model instead of ad hoc tribal knowledge. That makes the process easier to repeat, easier to review, and easier to support.</p>
+            </li>
+            <li>
+              <div class="assembly-index">03</div>
+              <h3>Validation with proof</h3>
+              <p>AutoPack is built to generate evidence, not assumptions. Testing and documentation are part of the output, which helps endpoint teams move faster without losing confidence.</p>
+            </li>
+            <li>
+              <div class="assembly-index">04</div>
+              <h3>Operationally clean outputs</h3>
+              <p>The deliverable is more than a wrapped installer. Customers receive the package bundle, documentation, metadata, and optional trust outputs that make downstream deployment and support easier.</p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="wdac-brief" aria-labelledby="wdac-title">
+        <div class="wdac-shell">
+          <div class="wdac-head">
+            <div>
+              <p class="section-label">WDAC delivery</p>
+              <h2 id="wdac-title">Need WDAC-ready applications? We can deliver the package and the policy path.</h2>
+            </div>
+            <p>WDAC matters when customers need stronger application control, cleaner trust boundaries, and fewer rollout exceptions. AutoPack is built to deliver standard packaging outputs and the WDAC layer that regulated or security-heavy environments often need.</p>
+          </div>
+          <div class="wdac-grid">
+            <div class="wdac-cell">
+              <strong>What It Is</strong>
+              <h3>WDAC is Microsoft application control for Windows.</h3>
+              <p>Windows Defender Application Control lets organizations define what software Windows is allowed to trust and run. It is used to reduce unknown or unauthorized code execution on managed devices.</p>
+            </div>
+            <div class="wdac-cell">
+              <strong>Why You Need It</strong>
+              <h3>Packaging alone is not enough in controlled environments.</h3>
+              <p>If a customer is enforcing application control, shipping an app without the matching trust material creates deployment friction. The package and the allow policy need to line up or the rollout stalls.</p>
+            </div>
+            <div class="wdac-cell">
+              <strong>What We Deliver</strong>
+              <h3>AutoPack can deliver WDAC-ready outputs.</h3>
+              <p>We can produce the application package, supporting documentation, validation evidence, and a WDAC supplemental policy so customers receive a cleaner deployment path instead of a packaging handoff with missing trust components.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="offers" id="offers">
+        <div class="section-inner">
+          <div class="section-intro">
+            <div>
+              <p class="section-label">How to buy</p>
+              <h2>Start with one app. Scale to a managed packaging factory.</h2>
+            </div>
+            <p>AutoPack can be sold as a straightforward packaging outcome, a managed service, or a customer-owned factory in your Azure environment. The same engine supports each stage; the difference is how much control and operational ownership you want.</p>
+          </div>
+
+          <div class="offer-stack">
+            <div class="offer-band">
+              <strong>Offer 01</strong>
+              <h3>Package for me</h3>
+              <p>Ideal when you need a specific application delivered fast. You get the Intune-ready output, documentation, and validation evidence without building the capability yourself.</p>
+            </div>
+
+            <div class="offer-band">
+              <strong>Offer 02</strong>
+              <h3>Run the packaging street for me</h3>
+              <p>Best for teams with a recurring backlog. AutoPack Managed turns packaging into a predictable service with better consistency, less firefighting, and clearer handover material.</p>
+            </div>
+
+            <div class="offer-band">
+              <strong>Offer 03</strong>
+              <h3>Give me my own factory</h3>
+              <p>For enterprise or regulated environments, AutoPack can run in your own Azure estate with your own trust, identity, storage, and DNS boundaries while keeping the same repeatable model.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="cta-wrap" id="contact">
+        <div class="cta-panel">
+          <p class="section-label">Next step</p>
+          <h2>Request a packaging assessment.</h2>
+          <p>Bring one painful application, a release backlog, or the outline for a customer-hosted packaging factory. AutoPack gives you a cleaner path from raw software to managed deployment without growing the manual burden.</p>
+          <div class="cta-actions-row">
+            <a class="cta" href="mailto:hello@autopack.io?subject=AutoPack%20Packaging%20Assessment">Email the AutoPack team</a>
+            <a class="ghost" href="#problem">Review the business case</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div>AutoPack helps endpoint teams move from manual packaging work to a governed delivery model.</div>
+        <div class="footer-links">
+          <a href="#why">Capabilities</a>
+          <a href="#offers">Delivery options</a>
+          <a href="mailto:hello@autopack.io?subject=AutoPack%20Packaging%20Assessment">Contact</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

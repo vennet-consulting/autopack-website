@@ -1,0 +1,7 @@
+environment                  = "dev"
+location                     = "westeurope"
+resource_group_name          = "rg-autopack-dev"
+static_web_app_name          = "autopack-dev"
+dns_zone_name                = "autopack.io"
+dns_zone_resource_group_name = "RG-DNS"
+static_web_app_custom_domain = "dev.autopack.io"

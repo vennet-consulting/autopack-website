@@ -55,7 +55,7 @@ jobs:
             '<title>',
             'meta name="description"',
             'Request a packaging assessment',
-            'WDAC',
+            'App Control for Business',
           ]
           missing = [item for item in required if item not in html]
           if missing:

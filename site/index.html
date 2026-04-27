@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AutoPack | Windows App Packaging Without Manual Drag</title>
-  <meta name="description" content="AutoPack turns raw Windows software into tested, documented, deployment-ready packages for Intune, with optional MSIX and WDAC outputs and a clear path from one-off packaging to a managed factory.">
+  <meta name="description" content="AutoPack turns raw Windows software into tested, documented, deployment-ready packages for Intune, with optional MSIX and App Control for Business outputs and a clear path from one-off packaging to a managed factory.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0b2033">
   <link rel="canonical" href="https://www.autopack.io/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="AutoPack | Windows App Packaging Without Manual Drag">
-  <meta property="og:description" content="Move from manual packaging work to a repeatable delivery line for Intune-ready app packages, testing evidence, documentation, and optional MSIX and WDAC outputs.">
+  <meta property="og:description" content="Move from manual packaging work to a repeatable delivery line for Intune-ready app packages, testing evidence, documentation, and optional MSIX and App Control for Business outputs.">
   <meta property="og:url" content="https://www.autopack.io/">
   <meta property="og:image" content="https://www.autopack.io/logo.png">
   <meta name="twitter:card" content="summary_large_image">
@@ -770,10 +770,65 @@
       }
     }
 
-    @media (max-width: 1320px) {
+    @media (max-width: 1320px) and (min-width: 1081px) {
+      .site-header-inner {
+        width: min(calc(100% - 1.8rem), var(--max-width));
+        gap: 0.85rem;
+      }
+
+      .brand-logo {
+        width: clamp(255px, 23vw, 345px);
+      }
+
+      .top-nav {
+        gap: 1rem;
+        font-size: 0.9rem;
+      }
+
+      .cta.mini {
+        padding: 0.8rem 1.2rem;
+        font-size: 0.86rem;
+      }
+
+      .hero {
+        padding-top: 3.9rem;
+        padding-bottom: 2.8rem;
+        min-height: auto;
+      }
+
+      .hero-meta {
+        margin-bottom: 1.8rem;
+      }
+
+      .hero-flag,
+      .hero-status {
+        gap: 0.75rem;
+        padding: 0.78rem 0.95rem;
+        font-size: 0.76rem;
+      }
+
       .hero h1 {
-        font-size: clamp(2.25rem, 4.1vw, 3.8rem);
-        max-width: 11.5ch;
+        font-size: clamp(2.15rem, 3.7vw, 3.35rem);
+        max-width: 10.8ch;
+      }
+
+      .hero .lead {
+        margin-top: 1.25rem;
+        font-size: clamp(0.98rem, 1.45vw, 1.12rem);
+        max-width: 52ch;
+      }
+
+      .hero-actions {
+        margin-top: 1.7rem;
+      }
+
+      .hero-stream {
+        margin-top: 2rem;
+      }
+
+      .hero h1 {
+        font-size: clamp(2.15rem, 3.7vw, 3.35rem);
+        max-width: 10.8ch;
       }
     }
 
@@ -832,7 +887,7 @@
       "applicationCategory": "BusinessApplication",
       "operatingSystem": "Windows",
       "url": "https://www.autopack.io/",
-      "description": "AutoPack turns Windows application packaging into a repeatable factory, producing Intune-ready packages, documentation, validation evidence, and optional MSIX and WDAC outputs.",
+      "description": "AutoPack turns Windows application packaging into a repeatable factory, producing Intune-ready packages, documentation, validation evidence, and optional MSIX and App Control for Business outputs.",
       "offers": {
         "@type": "Offer",
         "availability": "https://schema.org/InStock",
@@ -887,20 +942,20 @@
             </div>
             <div class="stream-row">
               <span class="stream-key">Outputs</span>
-              <span class="stream-value">.intunewin, docs, metadata, sandbox report, plus optional MSIX and WDAC supplemental policies.</span>
+              <span class="stream-value">.intunewin, docs, metadata, sandbox report, plus optional MSIX and App Control for Business supplemental policies.</span>
             </div>
           </div>
           <div class="hero-proof" aria-label="Key capabilities">
             <span>Intune-ready</span>
             <span>Sandbox-validated</span>
             <span>Documentation included</span>
-            <span>WDAC deliverables available</span>
+            <span>App Control for Business deliverables available</span>
           </div>
         </div>
       </section>
 
       <div class="ticker" aria-hidden="true">
-        <div class="ticker-track">request-driven packaging - installer analysis - detection logic - sandbox validation - intune artifacts - documentation - metadata - optional msix - optional wdac - request-driven packaging - installer analysis - detection logic - sandbox validation - intune artifacts - documentation - metadata - optional msix - optional wdac - </div>
+        <div class="ticker-track">request-driven packaging - installer analysis - detection logic - sandbox validation - intune artifacts - documentation - metadata - optional msix - optional app control policies - request-driven packaging - installer analysis - detection logic - sandbox validation - intune artifacts - documentation - metadata - optional msix - optional app control policies - </div>
       </div>
 
       <section class="split-story" id="problem">
@@ -977,16 +1032,16 @@
         <div class="wdac-shell">
           <div class="wdac-head">
             <div>
-              <p class="section-label">WDAC delivery</p>
-              <h2 id="wdac-title">Need WDAC-ready applications? We can deliver the package and the policy path.</h2>
+              <p class="section-label">App Control for Business</p>
+              <h2 id="wdac-title">Need App Control for Business-ready applications? We can deliver the package and the policy path.</h2>
             </div>
-            <p>WDAC matters when customers need stronger application control, cleaner trust boundaries, and fewer rollout exceptions. AutoPack is built to deliver standard packaging outputs and the WDAC layer that regulated or security-heavy environments often need.</p>
+            <p>App Control for Business matters when customers need stronger application control, cleaner trust boundaries, and fewer rollout exceptions. AutoPack is built to deliver standard packaging outputs and the App Control for Business policy layer that regulated or security-heavy environments often need.</p>
           </div>
           <div class="wdac-grid">
             <div class="wdac-cell">
               <strong>What It Is</strong>
-              <h3>WDAC is Microsoft application control for Windows.</h3>
-              <p>Windows Defender Application Control lets organizations define what software Windows is allowed to trust and run. It is used to reduce unknown or unauthorized code execution on managed devices.</p>
+              <h3>App Control for Business is Microsoft application control for Windows.</h3>
+              <p>App Control for Business, formerly Windows Defender Application Control (WDAC), lets organizations define what software Windows is allowed to trust and run. It is used to reduce unknown or unauthorized code execution on managed devices.</p>
             </div>
             <div class="wdac-cell">
               <strong>Why You Need It</strong>
@@ -995,8 +1050,8 @@
             </div>
             <div class="wdac-cell">
               <strong>What We Deliver</strong>
-              <h3>AutoPack can deliver WDAC-ready outputs.</h3>
-              <p>We can produce the application package, supporting documentation, validation evidence, and a WDAC supplemental policy so customers receive a cleaner deployment path instead of a packaging handoff with missing trust components.</p>
+              <h3>AutoPack can deliver App Control for Business-ready outputs.</h3>
+              <p>We can produce the application package, supporting documentation, validation evidence, and an App Control for Business supplemental policy so customers receive a cleaner deployment path instead of a packaging handoff with missing trust components.</p>
             </div>
           </div>
         </div>

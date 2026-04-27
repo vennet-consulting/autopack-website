@@ -112,9 +112,25 @@ jobs:
             -backend-config="container_name=${TFSTATE_CONTAINER_NAME}" \
             -backend-config="key=${TF_BACKEND_KEY}"
 
-          SWA_NAME=$(terraform -chdir=infra output -raw static_web_app_name)
-          RG_NAME=$(terraform -chdir=infra output -raw resource_group_name)
-          SWA_TOKEN=$(az staticwebapp secrets list --name "$SWA_NAME" --resource-group "$RG_NAME" --query properties.apiKey -o tsv)
+          SWA_NAME=""
+          RG_NAME=""
+
+          for attempt in $(seq 1 40); do
+            if SWA_NAME=$(terraform -chdir=infra output -raw static_web_app_name 2>/dev/null) && \
+               RG_NAME=$(terraform -chdir=infra output -raw resource_group_name 2>/dev/null); then
+              if SWA_TOKEN=$(az staticwebapp secrets list --name "$SWA_NAME" --resource-group "$RG_NAME" --query properties.apiKey -o tsv 2>/dev/null); then
+                break
+              fi
+            fi
+
+            if [[ "$attempt" == "40" ]]; then
+              echo "Static Web App deployment target is not ready yet." >&2
+              exit 1
+            fi
+
+            echo "Waiting for Static Web App infrastructure to become ready (attempt ${attempt}/40)..."
+            sleep 15
+          done
 
           echo "swa_name=$SWA_NAME" >> "$GITHUB_OUTPUT"
           echo "resource_group_name=$RG_NAME" >> "$GITHUB_OUTPUT"
